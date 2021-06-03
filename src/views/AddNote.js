@@ -1,26 +1,29 @@
+//React
 import React, {useState} from 'react';
-import {
-  Alert,
-  Button,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {openDatabase} from 'react-native-sqlite-storage';
-import style from '../../assets/style';
+//Alertas
 import AwesomeAlert from 'react-native-awesome-alerts';
+//Componentes
+import style from '../../assets/style';
+//Base de datos
+import {openDatabase} from 'react-native-sqlite-storage';
 const db = openDatabase({name: 'mydata.db'});
-const AddNote = () => {
+
+const AddNote = ({route}) => {
+  //Extraer valores de la ruta mediante destructuración
+  const {navigation} = route.params;
+  //State para la nota
   const [titulo, setTitulo] = useState('');
-  const [alert, setAlert] = useState(false);
+  const [texto, setTexto] = useState('');
   const [color, setColor] = useState('#000');
   const [background, setBackground] = useState('transparent');
-  const [texto, setTexto] = useState('');
-
-  const btnAgregarOnPress = function () {
-    console.log({titulo});
+  //State para la alerta
+  const [alert, setAlert] = useState(false);
+  const [alert2, setAlert2] = useState(false);
+  //Función para agregar la nota
+  const btnAgregar = function () {
+    //Validaciones para los formularios
     if (!titulo) {
       setAlert(true);
       return;
@@ -29,23 +32,26 @@ const AddNote = () => {
       setAlert(true);
       return;
     }
+    //Ejecutar el SQL
     db.transaction(t => {
       t.executeSql(
         'INSERT INTO notastext (titulo,texto,color) VALUES (?,?,?)',
         [titulo, texto, background],
         (tx, res) => {
-          Alert.alert('Nota guardada satisfactoriamente');
+          setAlert2(true);
         },
         error => console.log({error}),
       );
     });
   };
+  //Función para colocar el valor del codigo de color del Input
   const changeInput = (color, background) => {
     setBackground(background);
     setColor(color);
   };
   return (
     <SafeAreaView>
+      {/* Alerta para saber si los formularios estan completos */}
       <AwesomeAlert
         show={alert}
         showProgress={false}
@@ -59,6 +65,22 @@ const AddNote = () => {
         confirmButtonColor="#216dc1"
         onConfirmPressed={() => {
           setAlert(false);
+        }}
+      />
+      {/* Alerta para notificar al usuario que se guardo la nota  */}
+      <AwesomeAlert
+        show={alert2}
+        showProgress={false}
+        title="Nota guardada"
+        confirmText="Okey"
+        closeOnTouchOutside={true}
+        closeOnHardwareBackPress={false}
+        showCancelButton={false}
+        showConfirmButton={true}
+        confirmButtonColor="#216dc1"
+        onConfirmPressed={() => {
+          setAlert2(false);
+          navigation.goBack();
         }}
       />
       <View style={style.contenedor}>
@@ -88,6 +110,7 @@ const AddNote = () => {
           placeholderTextColor={`${color}`}
           onChangeText={t => setTexto(t)}
         />
+        {/* Botones para cambiar el color del imput */}
         <View style={style.row}>
           <TouchableOpacity
             style={style.color}
@@ -110,7 +133,7 @@ const AddNote = () => {
               changeInput('#474747', '#fa78ff')
             }></TouchableOpacity>
         </View>
-        <TouchableOpacity style={style.btn} onPress={() => btnAgregarOnPress()}>
+        <TouchableOpacity style={style.btnAddNote} onPress={() => btnAgregar()}>
           <Text style={style.text_btn}>AGREGAR</Text>
         </TouchableOpacity>
       </View>

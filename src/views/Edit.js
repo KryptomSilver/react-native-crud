@@ -1,23 +1,33 @@
+//React
 import React, {useEffect, useState} from 'react';
 import {View, Text, TextInput, TouchableOpacity, Alert} from 'react-native';
-import AwesomeAlert from 'react-native-awesome-alerts';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {openDatabase} from 'react-native-sqlite-storage';
+//Alertas
+import AwesomeAlert from 'react-native-awesome-alerts';
+//Componentes
 import style from '../../assets/style';
+//Base de datos
+import {openDatabase} from 'react-native-sqlite-storage';
 const db = openDatabase({name: 'mydata.db'});
+
 const Edit = ({route}) => {
+  //Extraer valores de la ruta mediante destructuración
   const {idnota, navigation} = route.params;
+  //State de los imputs
   const [texto, setTexto] = useState('');
   const [titulo, setTitulo] = useState('');
   const [color, setColor] = useState('#000');
   const [background, setBackground] = useState('transparent');
+  //State de alertas
   const [alert, setAlert] = useState(false);
   const [alert2, setAlert2] = useState(false);
+  //Función para poner el state de la nota
   const nota = (_titulo, _texto, _color) => {
     setTexto(_texto);
     setBackground(_color);
     setTitulo(_titulo);
   };
+  //Función para cargar la nota cuando se entre a la ruta Edit
   useEffect(() => {
     db.transaction(t => {
       t.executeSql(
@@ -25,8 +35,6 @@ const Edit = ({route}) => {
         [idnota],
         function (tx, res) {
           let notaDB = res.rows.item(0);
-          //   setNota(data);
-          console.log(notaDB.titulo);
           nota(notaDB.titulo, notaDB.texto, notaDB.color);
         },
         error => {
@@ -35,10 +43,12 @@ const Edit = ({route}) => {
       );
     });
   }, []);
-  const changeInput = (color, background) => {
+  //Función para colocar el valor del codigo de color del Input
+  const changeInputColor = (color, background) => {
     setBackground(background);
     setColor(color);
   };
+  //
   const btnModificar = idnota => {
     if (!titulo || !texto) {
       setAlert2(true);
@@ -54,62 +64,66 @@ const Edit = ({route}) => {
             return;
           } else {
             setAlert(true);
-            setTimeout(() => {
-              navigation.goBack();
-            }, 1000);
           }
         },
         error => console.log(error),
       );
     });
   };
-  
+  //Función para eliminar la nota
   function onEliminarPress() {
-    Alert.alert('¿Desea elminar?',
-        '¿Está seguro que desea elminar el registro?\nEsta acción no se puede deshacer',
-        [
-            {
-                text: "Sí",
-                onPress: (v) => {
-                    db.transaction(tx => {
-                        tx.executeSql(
-                            'DELETE FROM notastext WHERE id_nota = ?',
-                            [idnota],
-                            (tx, res) => {
-                                if (res.rowsAffected === 0) {
-                                    Alert.alert('Fallo al eliminar', 'No se eliminó el registro')
-                                    return;
-                                }
+    Alert.alert(
+      '¿Desea elminar?',
+      '¿Está seguro que desea elminar el registro?\nEsta acción no se puede deshacer',
+      [
+        {
+          text: 'Sí',
+          onPress: v => {
+            db.transaction(tx => {
+              tx.executeSql(
+                'DELETE FROM notastext WHERE id_nota = ?',
+                [idnota],
+                (tx, res) => {
+                  if (res.rowsAffected === 0) {
+                    Alert.alert(
+                      'Fallo al eliminar',
+                      'No se eliminó el registro',
+                    );
+                    return;
+                  }
 
-                                navigation.goBack()
-                            },
-                            error => console.log(error)
-                        )
-                    })
-                }
-            },
-            {
-                text: 'No'
-            }
-        ])
-}
+                  navigation.goBack();
+                },
+                error => console.log(error),
+              );
+            });
+          },
+        },
+        {
+          text: 'No',
+        },
+      ],
+    );
+  }
   return (
     <SafeAreaView>
+      {/* Alerta para mostrar que los datos han sido actualizados*/}
       <AwesomeAlert
         show={alert}
-        showProgress={true}
+        showProgress={false}
         title="Datos actualizados"
-        // message="Datos actualizados"
-        // confirmText="Okey"
+        confirmText="Okey"
         closeOnTouchOutside={true}
         closeOnHardwareBackPress={false}
         showCancelButton={false}
-        showConfirmButton={false}
-        // confirmButtonColor="#216dc1"
-        // onConfirmPressed={() => {
-        //   setAlert(false);
-        // }}
+        showConfirmButton={true}
+        confirmButtonColor="#216dc1"
+        onConfirmPressed={() => {
+          setAlert(false);
+          navigation.goBack();
+        }}
       />
+      {/* Alerta para saber si los formularios estan completos */}
       <AwesomeAlert
         show={alert2}
         showProgress={false}
@@ -152,31 +166,32 @@ const Edit = ({route}) => {
           onChangeText={t => setTexto(t)}
           value={texto}
         />
+        {/* Botones para cambiar el color del imput */}
         <View style={style.row}>
           <TouchableOpacity
             style={style.color}
             onPress={() =>
-              changeInput('#474747', '#a5ff9c')
+              changeInputColor('#474747', '#a5ff9c')
             }></TouchableOpacity>
           <TouchableOpacity
             style={style.color1}
             onPress={() =>
-              changeInput('#474747', '#ffa3f7')
+              changeInputColor('#474747', '#ffa3f7')
             }></TouchableOpacity>
           <TouchableOpacity
             style={style.color2}
             onPress={() =>
-              changeInput('#474747', '#94a2ff')
+              changeInputColor('#474747', '#94a2ff')
             }></TouchableOpacity>
           <TouchableOpacity
             style={style.color3}
             onPress={() =>
-              changeInput('#474747', '#fa78ff')
+              changeInputColor('#474747', '#fa78ff')
             }></TouchableOpacity>
         </View>
         <View style={style.row}>
           <TouchableOpacity
-            style={style.btn}
+            style={style.btnEdit}
             onPress={() => btnModificar(idnota)}>
             <Text style={style.text_btn}>MODIFICAR</Text>
           </TouchableOpacity>

@@ -1,6 +1,7 @@
+//React
 import React from 'react';
-import {Text, TouchableOpacity, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {Text, TouchableOpacity} from 'react-native';
+//Componentes
 import style from '../../assets/style';
 
 const Note = ({nota, navigation}) => {
@@ -18,7 +19,7 @@ const Note = ({nota, navigation}) => {
       onPress={() =>
         navigation.navigate('EditNote', {idnota: nota.id_nota,navigation:navigation})
       }>
-      <Text style={style.text}>{nota.titulo}</Text>
+      <Text style={style.tituloNota}>{nota.titulo}</Text>
       <Text style={style.text}>{nota.texto}</Text>
     </TouchableOpacity>
   );

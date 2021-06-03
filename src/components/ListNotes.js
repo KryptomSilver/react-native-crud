@@ -1,11 +1,18 @@
+//React
 import React, {useEffect, useState} from 'react';
-import {SafeAreaView, ScrollView, StyleSheet, Text, View} from 'react-native';
+import {SafeAreaView, ScrollView} from 'react-native';
+//Componentes
 import Note from './Note';
+import style from '../../assets/style';
+//Base de datos
 import {openDatabase} from 'react-native-sqlite-storage';
 const db = openDatabase({name: 'mydata.db'});
-import style from '../../assets/style';
+
 const ListNotes = ({navigation}) => {
+  //State para las notas
   const [notas, setNotas] = useState([]);
+
+  //Función para obtener las notas de la base de datos
   useEffect(() => {
     db.transaction(t => {
       t.executeSql(
