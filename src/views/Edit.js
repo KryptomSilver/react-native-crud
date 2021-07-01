@@ -7,8 +7,7 @@ import AwesomeAlert from 'react-native-awesome-alerts';
 //Componentes
 import style from '../../assets/style';
 //Base de datos
-import {openDatabase} from 'react-native-sqlite-storage';
-const db = openDatabase({name: 'mydata.db'});
+import clienteAxios from '../config/axios';
 
 const Edit = ({route}) => {
   //Extraer valores de la ruta mediante destructuración
@@ -29,19 +28,12 @@ const Edit = ({route}) => {
   };
   //Función para cargar la nota cuando se entre a la ruta Edit
   useEffect(() => {
-    db.transaction(t => {
-      t.executeSql(
-        'SELECT * FROM notastext where id_nota = ?',
-        [idnota],
-        function (tx, res) {
-          let notaDB = res.rows.item(0);
-          nota(notaDB.titulo, notaDB.texto, notaDB.color);
-        },
-        error => {
-          console.log({error});
-        },
-      );
-    });
+    const getNoteAPI = async () => {
+      const notasAPI = await clienteAxios.get(`/api/notes/${idnota}`);
+      const {data} = notasAPI;
+      nota(data.title, data.description, data.color);
+    };
+    getNoteAPI();
   }, []);
   //Función para colocar el valor del codigo de color del Input
   const changeInputColor = (color, background) => {
@@ -49,26 +41,15 @@ const Edit = ({route}) => {
     setColor(color);
   };
   //
-  const btnModificar = idnota => {
+  const btnModificar = async idnota => {
     if (!titulo || !texto) {
       setAlert2(true);
       return;
     }
-    db.transaction(tx => {
-      tx.executeSql(
-        'UPDATE notastext SET titulo = ?, texto = ? ,color = ?WHERE id_nota = ?',
-        [titulo, texto, background, idnota],
-        (tx, result) => {
-          if (result.rowsAffected.length === 0) {
-            Alert.alert('No se actualizaron los datos. Intente de nuevo');
-            return;
-          } else {
-            setAlert(true);
-          }
-        },
-        error => console.log(error),
-      );
-    });
+    const note = {title: titulo, description: texto, color: background};
+    console.log(idnota);
+    await clienteAxios.put(`/api/notes/${idnota}`, note);
+    setAlert(true);
   };
   //Función para eliminar la nota
   function onEliminarPress() {
@@ -79,24 +60,10 @@ const Edit = ({route}) => {
         {
           text: 'Sí',
           onPress: v => {
-            db.transaction(tx => {
-              tx.executeSql(
-                'DELETE FROM notastext WHERE id_nota = ?',
-                [idnota],
-                (tx, res) => {
-                  if (res.rowsAffected === 0) {
-                    Alert.alert(
-                      'Fallo al eliminar',
-                      'No se eliminó el registro',
-                    );
-                    return;
-                  }
-
-                  navigation.goBack();
-                },
-                error => console.log(error),
-              );
-            });
+            const deleteNoteAPI = async () =>
+              await clienteAxios.delete(`/api/notes/${idnota}`);
+            deleteNoteAPI();
+            navigation.goBack();
           },
         },
         {

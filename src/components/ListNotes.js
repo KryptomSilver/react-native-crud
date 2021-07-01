@@ -1,12 +1,10 @@
 //React
 import React, {useEffect, useState} from 'react';
-import {SafeAreaView, ScrollView} from 'react-native';
+import {SafeAreaView, ScrollView, Text} from 'react-native';
 //Componentes
 import Note from './Note';
 import style from '../../assets/style';
-//Base de datos
-import {openDatabase} from 'react-native-sqlite-storage';
-const db = openDatabase({name: 'mydata.db'});
+import clienteAxios from '../config/axios';
 
 const ListNotes = ({navigation}) => {
   //State para las notas
@@ -14,30 +12,32 @@ const ListNotes = ({navigation}) => {
 
   //Función para obtener las notas de la base de datos
   useEffect(() => {
-    db.transaction(t => {
-      t.executeSql(
-        'SELECT * FROM notastext',
-        [],
-        function (tx, res) {
-          let data = [];
-          for (let i = 0; i < res.rows.length; i++) {
-            data.push(res.rows.item(i));
-          }
-          setNotas(data);
-        },
-        error => {
-          console.log({error});
-        },
-      );
+    const unsubscribe = navigation.addListener('focus', async () => {
+      const notasAPI = await clienteAxios.get('/api/notes/');
+      setNotas(notasAPI.data);
     });
-  }, [notas]);
+    // Return the function to unsubscribe from the event so it gets removed on unmount
+    return unsubscribe;
+  }, [navigation]);
 
   return (
     <SafeAreaView>
       <ScrollView style={style.contenedor}>
-        {notas.map(nota => (
-          <Note key={nota.id_nota} nota={nota} navigation={navigation} />
-        ))}
+        {Object.keys(notas).length === 0 ? (
+          <Text
+            style={{
+              textAlign: 'center',
+              fontSize: 15,
+              fontWeight: '500',
+              marginTop: 15,
+            }}>
+            No hay notas crea una...
+          </Text>
+        ) : (
+          notas.map(nota => (
+            <Note key={nota._id} nota={nota} navigation={navigation} />
+          ))
+        )}
       </ScrollView>
     </SafeAreaView>
   );

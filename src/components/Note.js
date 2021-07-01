@@ -17,10 +17,10 @@ const Note = ({nota, navigation}) => {
         borderRadius: 4,
       }}
       onPress={() =>
-        navigation.navigate('EditNote', {idnota: nota.id_nota,navigation:navigation})
+        navigation.navigate('EditNote', {idnota: nota._id,navigation:navigation})
       }>
-      <Text style={style.tituloNota}>{nota.titulo}</Text>
-      <Text style={style.text}>{nota.texto}</Text>
+      <Text style={style.tituloNota}>{nota.title}</Text>
+      <Text style={style.text}>{nota.description}</Text>
     </TouchableOpacity>
   );
 };

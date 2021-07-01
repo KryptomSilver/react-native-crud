@@ -7,8 +7,7 @@ import AwesomeAlert from 'react-native-awesome-alerts';
 //Componentes
 import style from '../../assets/style';
 //Base de datos
-import {openDatabase} from 'react-native-sqlite-storage';
-const db = openDatabase({name: 'mydata.db'});
+import clienteAxios from '../config/axios';
 
 const AddNote = ({route}) => {
   //Extraer valores de la ruta mediante destructuración
@@ -22,7 +21,7 @@ const AddNote = ({route}) => {
   const [alert, setAlert] = useState(false);
   const [alert2, setAlert2] = useState(false);
   //Función para agregar la nota
-  const btnAgregar = function () {
+  const btnAgregar = async function () {
     //Validaciones para los formularios
     if (!titulo) {
       setAlert(true);
@@ -32,17 +31,10 @@ const AddNote = ({route}) => {
       setAlert(true);
       return;
     }
-    //Ejecutar el SQL
-    db.transaction(t => {
-      t.executeSql(
-        'INSERT INTO notastext (titulo,texto,color) VALUES (?,?,?)',
-        [titulo, texto, background],
-        (tx, res) => {
-          setAlert2(true);
-        },
-        error => console.log({error}),
-      );
-    });
+    const note = {title: titulo, description: texto, color: background};
+    //Ejecutar
+    await clienteAxios.post('/api/notes/', note);
+    navigation.goBack();
   };
   //Función para colocar el valor del codigo de color del Input
   const changeInput = (color, background) => {

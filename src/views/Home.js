@@ -8,28 +8,9 @@ import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 //Componentes
 import ListNotes from '../components/ListNotes';
 import style from '../../assets/style';
-//Base de datos
-import {openDatabase} from 'react-native-sqlite-storage';
-const db = openDatabase({name: 'mydata.db'});
+
 
 const Home = ({navigation}) => {
-  //Verificar y crear la base de datos
-  useEffect(() => {
-    db.transaction(t => {
-      t.executeSql(
-        'CREATE TABLE IF NOT EXISTS notastext (' +
-          'id_nota    INTEGER         PRIMARY KEY     AUTOINCREMENT,' +
-          'titulo         VARCHAR(128)    NOT NULL,' +
-          'texto         VARCHAR(255)    NOT NULL,' +
-          'color VARCHAR(128) NOT NULL' +
-          ');',
-        [],
-        () => console.log('CREATED TABLE notas'),
-        error => console.log({error}),
-      );
-    });
-  }, []);
-
   return (
     <SafeAreaView>
       <View style={style.contenedor_header}>
@@ -37,7 +18,7 @@ const Home = ({navigation}) => {
         <TouchableOpacity
           style={style.btnAdd}
           onPress={() =>
-            navigation.navigate('AddNote', {navigation:navigation})
+            navigation.navigate('AddNote', {navigation: navigation})
           }>
           <Text style={style.icono}>
             <FontAwesomeIcon icon={faPlus} size={30} color={'white'} />
